@@ -1,5 +1,5 @@
 use actix_cors::Cors;
-use actix_web::{web, App, HttpResponse, HttpServer, Result};
+use actix_web::{http, web, App, HttpResponse, HttpServer, Result};
 use anyhow::Context;
 use comrak::{markdown_to_html, ComrakOptions};
 use serde::{Deserialize, Serialize};
@@ -119,6 +119,15 @@ async fn health_check() -> Result<HttpResponse> {
     }
 }
 
+/// Handle OPTIONS preflight request
+async fn options() -> Result<HttpResponse> {
+    Ok(HttpResponse::Ok()
+        .append_header(("Access-Control-Allow-Origin", "*"))
+        .append_header(("Access-Control-Allow-Methods", "POST, OPTIONS"))
+        .append_header(("Access-Control-Allow-Headers", "Content-Type"))
+        .finish())
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Check if wkhtmltopdf is installed
@@ -138,12 +147,17 @@ async fn main() -> std::io::Result<()> {
             .allow_any_origin()
             .allow_any_method()
             .allow_any_header()
+            .send_wildcard()
             .max_age(3600);
 
         App::new()
             .wrap(cors)
             .route("/health", web::get().to(health_check))
             .route("/convert", web::post().to(convert_markdown_to_pdf))
+            .route(
+                "/convert",
+                web::route().method(http::Method::OPTIONS).to(options),
+            )
     })
     .bind("0.0.0.0:8080")?
     .run()
