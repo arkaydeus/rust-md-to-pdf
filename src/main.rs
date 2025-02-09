@@ -44,8 +44,12 @@ async fn html_to_pdf(html: &str) -> anyhow::Result<Vec<u8>> {
     // Create temporary PDF file path
     let pdf_path = html_path.with_extension("pdf");
 
-    // Run wkhtmltopdf
+    // Run wkhtmltopdf with margin settings
     let output = Command::new("wkhtmltopdf")
+        .arg("--margin-left")
+        .arg("30mm") // 30mm left margin
+        .arg("--margin-right")
+        .arg("30mm") // 30mm right margin
         .arg(&html_path)
         .arg(&pdf_path)
         .output()
