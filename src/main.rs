@@ -77,9 +77,6 @@ async fn convert_markdown_to_pdf(payload: web::Json<MarkdownRequest>) -> Result<
     match html_to_pdf(&html).await {
         Ok(pdf_bytes) => Ok(HttpResponse::Ok()
             .content_type("application/pdf")
-            .append_header(("Access-Control-Allow-Origin", "*"))
-            .append_header(("Access-Control-Allow-Methods", "POST, OPTIONS"))
-            .append_header(("Access-Control-Allow-Headers", "Content-Type"))
             .append_header((
                 "Content-Disposition",
                 "attachment; filename=\"document.pdf\"",
@@ -87,11 +84,7 @@ async fn convert_markdown_to_pdf(payload: web::Json<MarkdownRequest>) -> Result<
             .body(pdf_bytes)),
         Err(e) => {
             eprintln!("Error converting to PDF: {}", e);
-            Ok(HttpResponse::InternalServerError()
-                .append_header(("Access-Control-Allow-Origin", "*"))
-                .append_header(("Access-Control-Allow-Methods", "POST, OPTIONS"))
-                .append_header(("Access-Control-Allow-Headers", "Content-Type"))
-                .finish())
+            Ok(HttpResponse::InternalServerError().finish())
         }
     }
 }
@@ -100,32 +93,15 @@ async fn convert_markdown_to_pdf(payload: web::Json<MarkdownRequest>) -> Result<
 async fn health_check() -> Result<HttpResponse> {
     // Check if wkhtmltopdf is available
     match Command::new("wkhtmltopdf").arg("--version").output() {
-        Ok(_) => Ok(HttpResponse::Ok()
-            .append_header(("Access-Control-Allow-Origin", "*"))
-            .append_header(("Access-Control-Allow-Methods", "GET, OPTIONS"))
-            .append_header(("Access-Control-Allow-Headers", "Content-Type"))
-            .json(HealthResponse {
-                status: "healthy".to_string(),
-                version: env!("CARGO_PKG_VERSION").to_string(),
-            })),
-        Err(_) => Ok(HttpResponse::ServiceUnavailable()
-            .append_header(("Access-Control-Allow-Origin", "*"))
-            .append_header(("Access-Control-Allow-Methods", "GET, OPTIONS"))
-            .append_header(("Access-Control-Allow-Headers", "Content-Type"))
-            .json(HealthResponse {
-                status: "unhealthy - wkhtmltopdf not found".to_string(),
-                version: env!("CARGO_PKG_VERSION").to_string(),
-            })),
+        Ok(_) => Ok(HttpResponse::Ok().json(HealthResponse {
+            status: "healthy".to_string(),
+            version: env!("CARGO_PKG_VERSION").to_string(),
+        })),
+        Err(_) => Ok(HttpResponse::ServiceUnavailable().json(HealthResponse {
+            status: "unhealthy - wkhtmltopdf not found".to_string(),
+            version: env!("CARGO_PKG_VERSION").to_string(),
+        })),
     }
-}
-
-/// Handle OPTIONS preflight request
-async fn options() -> Result<HttpResponse> {
-    Ok(HttpResponse::Ok()
-        .append_header(("Access-Control-Allow-Origin", "*"))
-        .append_header(("Access-Control-Allow-Methods", "POST, OPTIONS"))
-        .append_header(("Access-Control-Allow-Headers", "Content-Type"))
-        .finish())
 }
 
 #[actix_web::main]
@@ -142,22 +118,13 @@ async fn main() -> std::io::Result<()> {
     );
 
     HttpServer::new(|| {
-        // Configure CORS middleware to allow any origin
-        let cors = Cors::default()
-            .allow_any_origin()
-            .allow_any_method()
-            .allow_any_header()
-            .send_wildcard()
-            .max_age(3600);
+        // Configure CORS middleware with permissive settings
+        let cors = Cors::permissive();
 
         App::new()
             .wrap(cors)
             .route("/health", web::get().to(health_check))
             .route("/convert", web::post().to(convert_markdown_to_pdf))
-            .route(
-                "/convert",
-                web::route().method(http::Method::OPTIONS).to(options),
-            )
     })
     .bind("0.0.0.0:8080")?
     .run()
