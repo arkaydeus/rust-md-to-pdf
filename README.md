@@ -43,6 +43,13 @@ A REST API service that converts Markdown text to PDF documents.
 
 ## API Usage
 
+All endpoints support CORS and allow:
+
+- Any origin (\*)
+- Any HTTP method
+- Any headers
+- Preflight cache of 1 hour (3600 seconds)
+
 ### Health Check
 
 **Endpoint:** `GET /health`

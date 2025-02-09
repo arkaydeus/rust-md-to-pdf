@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{web, App, HttpResponse, HttpServer, Result};
 use anyhow::Context;
 use comrak::{markdown_to_html, ComrakOptions};
@@ -114,7 +115,15 @@ async fn main() -> std::io::Result<()> {
     println!("Starting server at http://0.0.0.0:8080");
 
     HttpServer::new(|| {
+        // Configure CORS middleware
+        let cors = Cors::default()
+            .allow_any_origin()
+            .allow_any_method()
+            .allow_any_header()
+            .max_age(3600);
+
         App::new()
+            .wrap(cors)
             .route("/health", web::get().to(health_check))
             .route("/convert", web::post().to(convert_markdown_to_pdf))
     })
