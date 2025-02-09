@@ -112,7 +112,10 @@ async fn main() -> std::io::Result<()> {
         std::process::exit(1);
     }
 
-    println!("Starting server at http://0.0.0.0:8080");
+    println!(
+        "Starting rust-md-to-pdf v{} at http://0.0.0.0:8080",
+        env!("CARGO_PKG_VERSION")
+    );
 
     HttpServer::new(|| {
         // Configure CORS middleware
