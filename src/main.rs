@@ -35,7 +35,7 @@ fn markdown_to_html_converter(markdown: &str) -> String {
         body {{
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
-            padding: 1em;
+            padding: 4em 8em;
         }}
     </style>
 </head>
@@ -68,10 +68,6 @@ async fn html_to_pdf(html: &str) -> anyhow::Result<Vec<u8>> {
 
     // Run wkhtmltopdf with margin settings
     let output = Command::new("wkhtmltopdf")
-        .arg("--margin-left")
-        .arg("30mm") // 30mm left margin
-        .arg("--margin-right")
-        .arg("30mm") // 30mm right margin
         .arg(&html_path)
         .arg(&pdf_path)
         .output()
