@@ -22,7 +22,29 @@ struct HealthResponse {
 /// Converts markdown text to HTML using comrak
 fn markdown_to_html_converter(markdown: &str) -> String {
     let options = ComrakOptions::default();
-    markdown_to_html(markdown, &options)
+    let content = markdown_to_html(markdown, &options);
+
+    format!(
+        r#"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            padding: 1em;
+        }}
+    </style>
+</head>
+<body>
+    {}
+</body>
+</html>"#,
+        content
+    )
 }
 
 /// Creates a temporary file with the given content and returns its path
