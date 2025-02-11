@@ -32,10 +32,41 @@ fn markdown_to_html_converter(markdown: &str) -> String {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
+        @page {{
+            size: A4;
+            margin: 10mm;
+        }}
+        html {{
+            font-size: 16pt !important;
+            width: 210mm;  /* A4 width */
+        }}
         body {{
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
-            padding: 0em 7em;
+            padding: 0 5em;
+            font-size: 1rem !important;
+            width: 100%;
+            margin: 0;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
+        }}
+        /* Force consistent sizes */
+        p, div, span, li, td {{
+            font-size: 1rem !important;
+        }}
+        h1 {{ font-size: 1.4rem !important; }}
+        h2 {{ font-size: 1.2rem !important; }}
+        h3 {{ font-size: 1.1rem !important; }}
+        h4, h5, h6 {{ font-size: 1.1rem !important; }}
+        /* Handle long URLs */
+        a {{
+            word-wrap: break-word;
+            word-break: break-all;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            display: inline-block;
         }}
     </style>
 </head>
@@ -68,10 +99,20 @@ async fn html_to_pdf(html: &str) -> anyhow::Result<Vec<u8>> {
 
     // Run wkhtmltopdf with margin settings
     let output = Command::new("wkhtmltopdf")
+        .arg("--page-size")
+        .arg("A4")
+        .arg("--dpi")
+        .arg("96")
         .arg("--margin-top")
         .arg("20mm")
         .arg("--margin-bottom")
         .arg("20mm")
+        .arg("--disable-smart-shrinking")
+        .arg("--enable-local-file-access")
+        .arg("--zoom")
+        .arg("1.0")
+        .arg("--print-media-type")
+        .arg("--no-background")
         .arg(&html_path)
         .arg(&pdf_path)
         .output()
